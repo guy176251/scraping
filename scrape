@@ -1,0 +1,41 @@
+#!/bin/bash
+
+cd ~/python/scraping
+
+num=1
+browser='"google-chrome %s --new-window"'
+
+if [[ -f $1 ]]; then
+    file=$1
+elif [[ -f "$1.ipynb" ]]; then
+    file="$1.ipynb"
+elif [[ -f "nb$1.ipynb" ]]; then
+    file="nb$1.ipynb"
+else
+    for f in $( ls | grep "nb[[:digit:]]\.ipynb" ); do
+        (( num += 1 ))
+    done
+
+    file="nb$num.ipynb"
+    cp .template.ipynb $file
+    echo $file
+fi
+
+#if [[ $1 = 'new' || $num -eq 0 ]]
+#then
+#    (( num += 1 ))
+#    file="nb$num.ipynb"
+#    cp .template.ipynb $file
+#else
+#    file="nb$num.ipynb"
+#fi
+
+bash -i -c "poetry run jupyter notebook --port=8889 --browser=$browser $file"
+
+if [[ "$(<$file)" = "$(<.template_opened.ipynb)" ]] ; then
+    echo "removing blank file"
+    rm $file
+elif [[ "$(<$file)" = "$(<.template_opened_unsaved.ipynb)" ]]; then
+    echo "removing blank unsaved file"
+    rm $file
+fi
